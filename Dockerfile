@@ -47,7 +47,7 @@ WORKDIR /var/www/localhost/htdocs
 
 # 7. Copy your Laravel project files
 COPY . .
-
+RUN php artisan config:clear && php artisan cache:clear
 # 8. Install PHP dependencies and set correct permissions for Alpine's 'apache' user
 RUN composer install --no-dev --optimize-autoloader \
     && chown -R apache:apache /var/www/localhost/htdocs/storage /var/www/localhost/htdocs/bootstrap/cache
