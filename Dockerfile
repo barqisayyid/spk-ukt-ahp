@@ -72,6 +72,9 @@ COPY . .
 # ==========================================
 RUN composer install --no-dev --optimize-autoloader
 
+RUN cp .env.example .env && \
+    php artisan key:generate --force
+
 # ==========================================
 # Bersihkan Config Laravel
 # (Tidak menjalankan cache:clear)
