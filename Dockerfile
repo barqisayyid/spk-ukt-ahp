@@ -1,41 +1,39 @@
-FROM php:8.3-apache
+# Menggunakan PHP 8.3 dengan pelayan web Apache berbasis Alpine (Sangat ringan)
+FROM php:8.3-alpine-apache
 
-# 1. Install utilitas dasar Linux yang ringan via apt
-RUN apt-get update && apt-get install -y \
+# 1. Install ekstensi PHP & utilitas langsung dari paket biner Alpine (Nol Kompilasi!)
+RUN apk add --no-cache \
     zip \
     unzip \
     git \
-    && rm -rf /var/lib/apt/lists/*
+    php83-pecl-amqp \
+    php83-pdo_mysql \
+    php83-gd
 
-# 2. Trik Jitu: Salin ekstensi GD dan PDO_MYSQL yang sudah jadi (PRE-COMPILED) 
-# Tanpa install-php-extensions, tanpa kompilasi C, langsung pasang dalam 1 detik!
-COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
-RUN install-php-extensions gd pdo_mysql
-
-# 3. Aktifkan rewrite untuk .htaccess Laravel
-RUN a2enmod rewrite
-
-# 4. Ubah port Apache ke 7860 (Wajib untuk Hugging Face)
-RUN sed -i 's/Listen 80/Listen 7860/' /etc/apache2/ports.conf
-RUN sed -i 's/<VirtualHost \*:80>/<VirtualHost \*:7860>/' /etc/apache2/sites-available/000-default.conf
-
-# 5. Set DocumentRoot ke folder public Laravel
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-
-# 6. Set Working Directory
-WORKDIR /var/www/html
-
-# 7. Ambil Composer yang sudah jadi dari image resmi Composer (Instan tanpa download skrip)
+# 2. Salin biner Composer resmi yang sudah matang
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 8. Copy seluruh source code project Laravel
+# 3. Aktifkan modul Apache Rewrite (Cara Alpine)
+RUN sed -i 's/#LoadModule rewrite_module/LoadModule rewrite_module/' /etc/apache2/httpd.conf
+
+# 4. Ubah port Apache ke 7860 (Wajib untuk Hugging Face)
+RUN sed -i 's/Listen 80/Listen 7860/' /etc/apache2/httpd.conf
+
+# 5. Atur DocumentRoot Apache ke folder public Laravel
+ENV APACHE_DOCUMENT_ROOT /var/www/localhost/htdocs/public
+RUN sed -i 's!/var/www/localhost/htdocs!/var/www/localhost/htdocs/public!g' /etc/apache2/httpd.conf
+
+# 6. Set Working Directory sesuai standar Alpine
+WORKDIR /var/www/localhost/htdocs
+
+# 7. Copy seluruh source code project Laravel
 COPY . .
 
-# 9. Jalankan installasi dependency Laravel & atur permission folder
+# 8. Jalankan instalasi dependency Laravel & atur hak akses file
 RUN composer install --no-dev --optimize-autoloader
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R apache:apache /var/www/localhost/htdocs/storage /var/www/localhost/htdocs/bootstrap/cache
 
 EXPOSE 7860
-CMD ["apache2-foreground"]
+
+# Jalankan Apache di foreground (Sesuai konfigurasi Alpine)
+CMD ["httpd", "-D", "FOREGROUND"]
