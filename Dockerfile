@@ -28,7 +28,7 @@ RUN apk add --no-cache \
     git
 
 # 3. Symlink php83 to php so Composer and Artisan commands work seamlessly
-RUN ln -s /usr/bin/php83 /usr/bin/php
+RUN ln -sf /usr/bin/php83 /usr/bin/php
 
 # 4. Copy official pre-compiled Composer binary
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
