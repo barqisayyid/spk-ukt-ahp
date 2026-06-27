@@ -1,40 +1,27 @@
-FROM php:8.3-apache
+# Menggunakan image PHP 8.3 + Apache yang sudah terinstall GD, PDO_MYSQL, dan Composer secara bawaan
+FROM shinsenter/php:8.3-apache
 
-# 1. Install dependensi dasar yang sangat ringan (Tanpa library font/gambar yang berat)
-RUN apt-get update && apt-get install -y \
-    zip \
-    unzip \
-    git \
-    libpng-dev \
-    && rm -rf /var/lib/apt/lists/*
+# 1. Install utilitas dasar tambahan (Sangat cepat & ringan)
+USER root
+RUN apt-get update && apt-get install -y zip unzip git && rm -rf /var/lib/apt/lists/*
 
-# 2. Install ekstensi PHP (Proses ini sekarang akan jauh lebih cepat karena gd dikompilasi secara minimalis)
-RUN docker-php-ext-install pdo_mysql gd
-
-# 3. Aktifkan rewrite untuk .htaccess Laravel
-RUN a2enmod rewrite
-
-# 4. Ubah port Apache ke 7860 (Wajib untuk Hugging Face)
+# 2. Ubah port Apache ke 7860 (Wajib untuk Hugging Face)
 RUN sed -i 's/Listen 80/Listen 7860/' /etc/apache2/ports.conf
 RUN sed -i 's/<VirtualHost \*:80>/<VirtualHost \*:7860>/' /etc/apache2/sites-available/000-default.conf
 
-# 5. Set DocumentRoot ke folder public Laravel
+# 3. Set DocumentRoot ke folder public Laravel
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# 6. Set Working Directory
+# 4. Set Working Directory
 WORKDIR /var/www/html
 
-# 7. Install Composer menggunakan skrip PHP resmi
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
-    && php composer-setup.php --install-dir=/usr/bin --filename=composer \
-    && php -r "unlink('composer-setup.php');"
-
-# 8. Copy seluruh source code project Laravel ke dalam container
+# 5. Copy seluruh source code project Laravel ke dalam container
 COPY . .
 
-# 9. Jalankan installasi dependency Laravel & atur permission folder
+# 6. Jalankan instalasi dependency Laravel & atur permission folder
+# (Composer sudah tersedia langsung di dalam image ini)
 RUN composer install --no-dev --optimize-autoloader
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
