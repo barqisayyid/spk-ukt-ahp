@@ -23,7 +23,10 @@ WORKDIR /var/www/html
 COPY . .
 
 # Install Composer & atur permission
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# GANTI DENGAN INI (Jauh lebih aman dari cache miss):
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+    && php composer-setup.php --install-dir=/usr/bin --filename=composer \
+    && php -r "unlink('composer-setup.php');"
 RUN composer install --no-dev --optimize-autoloader
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
