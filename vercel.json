@@ -2,7 +2,7 @@
     "version": 2,
     "framework": null,
     "functions": {
-        "api/index.php": {
+        "public/index.php": {
             "runtime": "vercel-php@0.8.0"
         }
     },
@@ -12,12 +12,12 @@
             "dest": "/public/build/assets/$1"
         },
         {
-            "src": "/((?!api/).*\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))$",
+            "src": "/((?!public/).*\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))$",
             "dest": "/public/$1"
         },
         {
             "src": "/(.*)",
-            "dest": "/api/index.php"
+            "dest": "/public/index.php"
         }
     ],
     "outputDirectory": "."
