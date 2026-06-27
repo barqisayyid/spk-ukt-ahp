@@ -54,6 +54,6 @@ RUN composer install --no-dev --optimize-autoloader \
 
 # Expose the mandatory Hugging Face port
 EXPOSE 7860
-
+ENV APP_DEBUG=true
 # Start Apache in the foreground
 CMD ["httpd", "-D", "FOREGROUND"]
