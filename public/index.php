@@ -1,12 +1,4 @@
 <?php
-# Pindahkan bootstrap cache ke /tmp agar tidak error di Vercel
-$appContent = $_SERVER['DOCUMENT_ROOT'] ?? __DIR__;
-if (env('APP_ENV') === 'production') {
-    config(['app.manifest' => '/tmp/manifest']);
-    config(['view.compiled' => '/tmp/views']);
-    config(['cache.stores.file.path' => '/tmp/cache']);
-    config(['session.files' => '/tmp/sessions']);
-}
 
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
@@ -24,5 +16,13 @@ require __DIR__.'/../vendor/autoload.php';
 // Bootstrap Laravel and handle the request...
 /** @var Application $app */
 $app = require_once __DIR__.'/../bootstrap/app.php';
+
+# PINDAHKAN MODIFIKASI VERCEL KE SINI (Setelah Laravel ter-bootstrap)
+if (env('APP_ENV') === 'production' || env('VERCEL') === '1') {
+    config(['app.manifest' => '/tmp/manifest']);
+    config(['view.compiled' => '/tmp/views']);
+    config(['cache.stores.file.path' => '/tmp/cache']);
+    config(['session.files' => '/tmp/sessions']);
+}
 
 $app->handleRequest(Request::capture());
