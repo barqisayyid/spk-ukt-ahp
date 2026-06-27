@@ -53,8 +53,9 @@ COPY . .
 # 8. Install dependencies FIRST
 RUN composer install --no-dev --optimize-autoloader
 
-# 9. NOW run artisan commands
-RUN php artisan config:clear && php artisan cache:clear
+# 9. Clear cache using the array driver to avoid database connection errors during build
+RUN CACHE_DRIVER=array php artisan config:clear && \
+    CACHE_DRIVER=array php artisan cache:clear
 
 # 10. Fix permissions
 RUN chown -R apache:apache /var/www/localhost/htdocs/storage /var/www/localhost/htdocs/bootstrap/cache
