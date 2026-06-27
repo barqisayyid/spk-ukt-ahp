@@ -1,8 +1,7 @@
 # 1. Use the official lightweight Alpine base image
 FROM alpine:3.20
 
-# 2. Install Apache, PHP 8.3, and all Laravel-required extensions natively via apk
-# We include tokenizer, xmlwriter, phar, and openssl as Composer/Laravel usually demand them.
+# 2. Install Apache, PHP 8.3, and all Laravel-required extensions natively
 RUN apk add --no-cache \
     apache2 \
     php83-apache2 \
@@ -21,6 +20,9 @@ RUN apk add --no-cache \
     php83-zip \
     php83-tokenizer \
     php83-xmlwriter \
+    php83-simplexml \
+    php83-xmlreader \
+    php83-ctype \
     bash \
     curl \
     zip \
